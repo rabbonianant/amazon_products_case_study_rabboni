@@ -216,7 +216,7 @@ csv_df.printSchema()
 
 # COMMAND ----------
 
-combined_data_df = standardized_api_df.unionByName(csv_df)
+combined_data_df = api_df_standardized.unionByName(csv_df)
 
 # COMMAND ----------
 
@@ -231,18 +231,6 @@ combined_data_df = combined_data_df.withColumn("detected_currency", F.regexp_ext
 # COMMAND ----------
 
 # Typecasting
-# typecasted_data_df = combined_data_df.withColumn("detected_currency",F.regexp_extract(F.col("product_price"), r"([A-Z]{3}|₹|\$|€|£)", 1))\
-#     .withColumn("actual_currency",F.when(F.col("detected_currency") == "$", "USD").otherwise(F.col("detected_currency")))\
-#         .withColumn("product_price", F.regexp_replace(F.col("product_price"), r"[^0-9.]", "").cast("double"))\
-#             .withColumn("product_original_price", F.regexp_replace(F.col("product_original_price"), r"[^0-9.]", "").cast("double"))\
-#                 .withColumn("product_minimum_offer_price", F.regexp_replace(F.col("product_minimum_offer_price"), r"[^0-9.]", "").cast("double"))\
-#                     .withColumn("product_star_rating", F.regexp_replace(F.col("product_star_rating"), r"[^0-9.]", "").cast("double"))\
-#                         .withColumn("product_num_ratings", F.regexp_replace(F.col("product_num_ratings"), r"[^0-9.]", "").cast("double"))\
-#                             .withColumn("has_variations", F.col("has_variations").cast("boolean"))\
-#                                 .drop(F.col("detected_currency"))\
-#                                     .drop(F.col("currency"))
-
-
 columns = combined_data_df.columns
 for column_name in SILVER["CURRENCY_COLUMNS"]:
     if column_name in columns:
@@ -376,11 +364,6 @@ finally:
 spark.read.format("delta") \
     .load(SILVER["WRITE_PATH"]) \
     .printSchema()
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from silver.products_table
 
 # COMMAND ----------
 

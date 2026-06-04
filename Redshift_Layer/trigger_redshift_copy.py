@@ -6,8 +6,8 @@ import json
 
 lambda_client = boto3.client(
     "lambda",
-    aws_access_key_id="****", 
-    aws_secret_access_key="**********",
+    aws_access_key_id="******", 
+    aws_secret_access_key="*******",
     region_name="ap-south-1"
 )
 

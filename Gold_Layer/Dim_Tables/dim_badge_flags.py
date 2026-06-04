@@ -8,41 +8,48 @@ from itertools import product
 
 # COMMAND ----------
 
-def create_dim_badge_flags():
+def create_dim_badge_flags(flag_columns):
+    flag_names = list(flag_columns.keys())
     rows = []
-    for best_seller, amazon_choice, prime, climate_pledge in product([False, True], repeat=4):
-        badges = []
-        if best_seller:
-            badges.append("Best Seller")
-        if amazon_choice:
-            badges.append("Amazon Choice")
-        if prime:
-            badges.append("Prime")
-        if climate_pledge:
-            badges.append("Climate_Pledge")
-
-        badge_combination = " + ".join(badges) if badges else "None"
-        rows.append((best_seller,amazon_choice,prime,climate_pledge,badge_combination))
-
-    return spark.createDataFrame(
-        rows,
-        schema=[
-            "is_best_seller",
-            "is_amazon_choice",
-            "is_prime",
-            "climate_pledge",
-            "badge_combination"
+    for combination in product([False, True], repeat=len(flag_names)):
+        enabled_flags = [
+            flag_columns[flag_name]
+            for flag_name, is_enabled in zip(flag_names, combination)
+            if is_enabled
         ]
+        badge_combination = (
+            " + ".join(enabled_flags)
+            if enabled_flags
+            else "None"
+        )
+        rows.append(
+            tuple(combination) + (badge_combination,)
+        )
+    df = spark.createDataFrame(
+        rows,
+        schema=flag_names + ["badge_combination"]
+    )
+    return (
+        df.withColumn(
+            "badge_key",
+            F.abs(F.xxhash64("badge_combination"))
+        )
+        .select(
+            "badge_key",
+            *flag_names,
+            "badge_combination"
+        )
     )
 
 # COMMAND ----------
 
-dim_badge_flags_df = create_dim_badge_flags()
+dim_badge_flags_df = create_dim_badge_flags(GOLD["DIM_BADGE_FLAG_COLUMNS"])
 
 # COMMAND ----------
 
 dim_badge_flags_df.write\
     .mode("overwrite")\
-        .format("delta")\
-            .option("replaceWhere", "1=1")\
-                .saveAsTable("gold.dim_badge_flags")
+        .option("mergeSchema", "true")\
+            .option("overwriteSchema", "true")\
+                .format("delta")\
+                    .saveAsTable("gold.dim_badge_flags")

@@ -96,5 +96,28 @@ SILVER = {
 # COMMAND ----------
 
 GOLD = {
-    'DIM_PRODUCT_COLUMNS': ['asin', 'product_title', 'product_url', 'product_photo', 'has_variations', 'run_timestamp']
+    'DIM_PRODUCT_COLUMNS': ['asin', 'product_title', 'product_url', 'product_photo', 'has_variations', 'run_timestamp'],
+    'DIM_BADGE_FLAG_COLUMNS': {
+        "is_best_seller": "Best Seller",
+        "is_amazon_choice": "Amazon Choice",
+        "is_prime": "Prime",
+        "climate_pledge": "Climate Pledge"
+    },
+    'DIM_CURRENCY': {
+        "USD": ("US Dollar", 1.0000),
+        "EUR": ("Euro", 1.1300),
+        "GBP": ("British Pound", 1.3400),
+        "INR": ("Indian Rupee", 0.0120),
+        "JPY": ("Japanese Yen", 0.0069),
+        "CAD": ("Canadian Dollar", 0.7300),
+        "AED": ("UAE Dirham", 0.2720),
+        "HKD": ("Hong Kong Dollar", 0.1280),
+        "ILS": ("Israeli Shekel", 0.2800),
+        "MXN": ("Mexican Peso", 0.0520),
+        "BRL": ("Brazilian Real", 0.1800),
+        "PLN": ("Polish Zloty", 0.2700),
+        "RON": ("Romanian Leu", 0.2200),
+        "TRY": ("Turkish Lira", 0.0250),
+        "UNKNOWN": ("Unknown Currency", None)
+    }
 }

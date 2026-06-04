@@ -38,7 +38,6 @@ dim_date = spark.table("gold.dim_date") \
     )
 currency_dim = spark.table("gold.dim_currency_rate")\
     .select(
-        "currency_key",
         "currency_code",
         "usd_conversion_rate"
     )
@@ -185,7 +184,7 @@ fact_product_snapshot_final = (
         F.col("search_key"),
         F.col("date_key"),
         F.col("badge_key"),
-        F.col("currency_key"),
+
 
         F.col("run_timestamp")
             .alias("snapshot_timestamp"),
