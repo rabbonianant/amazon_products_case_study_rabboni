@@ -17,16 +17,16 @@ latest_timestamp, latest_date = get_latest_gold_timestamp("product_visibility_da
 # COMMAND ----------
 
 if latest_timestamp:
-    fact_df = spark.table("gold.fact_product_snapshot").filter((F.col("snapshot_timestamp") > latest_timestamp) & (F.col('snapshot_date') >= latest_date))
+    fact_df = spark.table(GOLD["FACT_PRODUCT_SNAPSHOT"]).filter((F.col("snapshot_timestamp") > latest_timestamp) & (F.col('snapshot_date') >= latest_date))
 else:
-    fact_df = spark.table("gold.fact_product_snapshot")
+    fact_df = spark.table(GOLD["FACT_PRODUCT_SNAPSHOT"])
 
 # COMMAND ----------
 
-product_df = spark.table("gold.dim_product")
-search_df = spark.table("gold.dim_search_term")
-date_df = spark.table("gold.dim_date")
-badge_df = spark.table("gold.dim_badge_flags")
+product_df = spark.table(GOLD["DIM_PRODUCT"])
+search_df = spark.table(GOLD["DIM_SEARCH_TERM"])
+date_df = spark.table(GOLD["DIM_DATE"])
+badge_df = spark.table(GOLD["DIM_BADGE_FLAGS"])
 
 # COMMAND ----------
 
@@ -93,7 +93,7 @@ reporting_df = (
 
 # COMMAND ----------
 
-export_path = "s3://rabboni-case-study-data/redshift_exports/product_visibility_daily/temp/"
+export_path = REDSHIFT["REPORTING_TABLE_EXPORT_PATH"]
 processed_timestamp = reporting_df.agg(F.max("snapshot_timestamp")).collect()[0][0]
 tracker_table = spark.table(GOLD_TRACKER_TABLE)
 tracker_schema = tracker_table.schema
@@ -144,8 +144,8 @@ except Exception as e:
 
 # COMMAND ----------
 
-temp_path = "s3://rabboni-case-study-data/redshift_exports/product_visibility_daily/temp/"
-export_path = "s3://rabboni-case-study-data/redshift_exports/product_visibility_daily/export/"
+temp_path = REDSHIFT["TEMP_STORAGE_PATH"]
+export_path = REDSHIFT["PARQUET_ONLY_PATH"]
 
 files = dbutils.fs.ls(temp_path)
 

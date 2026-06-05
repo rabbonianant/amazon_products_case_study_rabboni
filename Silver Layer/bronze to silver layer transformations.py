@@ -248,7 +248,7 @@ for column_name, target_type in SILVER["TYPE_CAST_COLUMNS"].items():
         combined_data_df = combined_data_df.withColumn(
             column_name,
             F.col(column_name).cast(target_type)
-        )
+        )   
 
 
 

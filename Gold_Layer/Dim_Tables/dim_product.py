@@ -25,10 +25,10 @@ tracker_df = spark.table(GOLD_TRACKER_TABLE)
 # COMMAND ----------
 
 if latest_timestamp is None:
-    dim_product_df = spark.read.table('silver.products_table')\
+    dim_product_df = spark.read.table(SILVER["PRODUCTS_TABLE"])\
         .select(dim_product_columns)
 else:
-    dim_product_df = spark.read.table('silver.products_table')\
+    dim_product_df = spark.read.table(SILVER["PRODUCTS_TABLE"])\
         .filter((F.col('run_timestamp') > latest_timestamp) & (F.col('date') >= latest_date))\
             .select(dim_product_columns)
 
@@ -128,14 +128,14 @@ def dim_product_scd2(silver_incremental_df,dim_table_name="gold.dim_product"):
 
 processed_timestamp = dim_product_df_with_scd_columns.agg(F.max("run_timestamp")).collect()[0][0]
 
-if spark.table("gold.dim_product").isEmpty():
+if spark.table(GOLD["DIM_PRODUCT"]).isEmpty():
     write_df = dim_product_df_with_scd_columns.drop("run_timestamp")
 else:
     write_df = dim_product_scd2(dim_product_df_with_scd_columns)
 
 write_with_tracker(
     df=write_df,
-    target_table="gold.dim_product",
+    target_table=GOLD["DIM_PRODUCT"],
     table_name="dim_product",
     tracker_table=GOLD_TRACKER_TABLE,
     tracker_schema=tracker_df.schema,

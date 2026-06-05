@@ -19,16 +19,16 @@ tracker_df = spark.table(GOLD_TRACKER_TABLE)
 latest_timestamp, latest_date = get_latest_gold_timestamp("dim_search_term")
 
 if latest_timestamp is None:
-    silver_incremental = spark.read.table('silver.products_table')
+    silver_incremental = spark.read.table(SILVER["PRODUCTS_TABLE"])
 else:
-    silver_incremental = spark.read.table("silver.products_table")\
+    silver_incremental = spark.read.table(SILVER["PRODUCTS_TABLE"])\
         .filter((F.col("run_timestamp") > latest_timestamp) & (F.col('date') >= latest_date))
 
 
 # COMMAND ----------
 
 def build_dim_search_term(silver_incremental_df):
-    dim_search_df = spark.table("gold.dim_search_term")
+    dim_search_df = spark.table(GOLD["DIM_SEARCH_TERM"])
     search_terms_df = silver_incremental_df.select("search_term")\
         .distinct()\
             .withColumn(
@@ -57,7 +57,7 @@ processed_timestamp = silver_incremental.agg(F.max("run_timestamp")).collect()[0
 
 write_with_tracker(
     df=new_terms,
-    target_table="gold.dim_search_term",
+    target_table=GOLD["DIM_SEARCH_TERM"],
     table_name="dim_search_term",
     tracker_table=GOLD_TRACKER_TABLE,
     tracker_schema=tracker_df.schema,

@@ -13,15 +13,15 @@ from datetime import date
 
 # COMMAND ----------
 
-dim_product = spark.table("gold.dim_product")
+dim_product = spark.table(GOLD["DIM_PRODUCT"])
 
-dim_search = spark.table("gold.dim_search_term") \
+dim_search = spark.table(GOLD["DIM_SEARCH_TERM"]) \
     .select(
         "search_key",
         "search_term"
     )
 
-dim_badge = spark.table("gold.dim_badge_flags") \
+dim_badge = spark.table(GOLD["DIM_BADGE_FLAGS"]) \
     .select(
         "badge_key",
         "is_best_seller",
@@ -31,12 +31,12 @@ dim_badge = spark.table("gold.dim_badge_flags") \
     )
 dim_badge = dim_badge.withColumnRenamed("climate_pledge", "climate_pledge_friendly")
 
-dim_date = spark.table("gold.dim_date") \
+dim_date = spark.table(GOLD["DIM_DATE"]) \
     .select(
         "date_key",
         "date"
     )
-currency_dim = spark.table("gold.dim_currency_rate")\
+currency_dim = spark.table(GOLD["DIM_CURRENCY_TABLE"])\
     .select(
         "currency_code",
         "usd_conversion_rate"
@@ -50,9 +50,9 @@ latest_timestamp, latest_date = get_latest_gold_timestamp("fact_product_snapshot
 # COMMAND ----------
 
 if latest_timestamp is None:
-    fact_product_snapshot_df = spark.read.table('silver.products_table')
+    fact_product_snapshot_df = spark.read.table(SILVER["PRODUCTS_TABLE"])
 else:
-    fact_product_snapshot_df = spark.read.table('silver.products_table')\
+    fact_product_snapshot_df = spark.read.table(SILVER["PRODUCTS_TABLE"])\
         .filter((F.col("run_timestamp") > latest_timestamp) & (F.col('date') >= latest_date))
 display(fact_product_snapshot_df)
 
@@ -226,7 +226,7 @@ processed_timestamp = fact_product_snapshot_final.agg(F.max("snapshot_timestamp"
 tracker_df = spark.table(GOLD_TRACKER_TABLE)
 write_with_tracker(
     df=fact_product_snapshot_final,
-    target_table="gold.fact_product_snapshot",
+    target_table=GOLD["FACT_PRODUCT_SNAPSHOT"],
     table_name="fact_product_snapshot",
     tracker_table=GOLD_TRACKER_TABLE,
     tracker_schema=tracker_df.schema,
@@ -235,3 +235,5 @@ write_with_tracker(
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC select * from amazon_case_study_gold_tracker

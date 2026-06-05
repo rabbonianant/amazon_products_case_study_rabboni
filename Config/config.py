@@ -15,6 +15,8 @@ SILVER = {
     "SEARCH_RANK_WINDOW": Window.partitionBy("page","search_term","run_timestamp").orderBy(F.col("page_position").asc()),
     "WRITE_PATH": "s3://rabboni-case-study-data/silver/products_table/",
 
+    "PRODUCTS_TABLE":"silver.products_table",
+
     "STANDARD_COLUMNS": {
         "data_products_product_title": "product_title",
         "data_products_asin": "asin",
@@ -119,5 +121,24 @@ GOLD = {
         "RON": ("Romanian Leu", 0.2200),
         "TRY": ("Turkish Lira", 0.0250),
         "UNKNOWN": ("Unknown Currency", None)
-    }
+    },
+    'DIM_BADGE_FLAGS': "gold.dim_badge_flags",
+    'DIM_CURRENCY_TABLE': "gold.dim_currency_rate",
+    'DIM_PRODUCT': "gold.dim_product",
+    'DIM_SEARCH_TERM':"gold.dim_search_term",
+    'DIM_DATE':"gold.dim_date",
+    'FACT_PRODUCT_SNAPSHOT':"gold.fact_product_snapshot"
+}
+
+# COMMAND ----------
+
+REDSHIFT = {
+    "REPORTING_TABLE_EXPORT_PATH": "s3://rabboni-case-study-data/redshift_exports/product_visibility_daily/temp/",
+    "TEMP_STORAGE_PATH": "s3://rabboni-case-study-data/redshift_exports/product_visibility_daily/temp/",
+    "PARQUET_ONLY_PATH":"s3://rabboni-case-study-data/redshift_exports/product_visibility_daily/export/",
+
+    "TABLES": ["product_visibility_daily"],
+    "COPY_BASE_PATH": "s3://rabboni-case-study-data/redshift_exports",
+    "AWS_ACCESS_KEY": "**********",
+    "AWS_SECRET_KEY": "**********",
 }

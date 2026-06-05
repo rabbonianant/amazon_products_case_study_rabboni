@@ -52,4 +52,4 @@ dim_badge_flags_df.write\
         .option("mergeSchema", "true")\
             .option("overwriteSchema", "true")\
                 .format("delta")\
-                    .saveAsTable("gold.dim_badge_flags")
+                    .saveAsTable(GOLD["DIM_BADGE_FLAGS"])

@@ -37,4 +37,4 @@ dim_currency_df.write\
     .format("delta")\
         .mode("overwrite")\
             .option("overwriteSchema", "true")\
-                .saveAsTable('gold.dim_currency_rate')
+                .saveAsTable(GOLD["DIM_CURRENCY_TABLE"])

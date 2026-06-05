@@ -36,4 +36,4 @@ dates = dates.withColumn("year", F.year("date"))\
 
 # COMMAND ----------
 
-dates.write.mode("overwrite").format("delta").option("replaceWhere", "1=1").saveAsTable("gold.dim_date")
+dates.write.mode("overwrite").format("delta").option("replaceWhere", "1=1").saveAsTable(GOLD["DIM_DATE"])

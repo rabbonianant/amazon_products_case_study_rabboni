@@ -4,15 +4,19 @@ import json
 
 # COMMAND ----------
 
+# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Config/config
+
+# COMMAND ----------
+
 lambda_client = boto3.client(
     "lambda",
-    aws_access_key_id="******", 
-    aws_secret_access_key="*******",
+    aws_access_key_id=REDSHIFT["AWS_ACCESS_KEY"],
+    aws_secret_access_key=REDSHIFT["AWS_SECRET_KEY"],
     region_name="ap-south-1"
 )
 
-TABLES = ["product_visibility_daily"]
-BASE_PATH = "s3://rabboni-case-study-data/redshift_exports"
+TABLES = REDSHIFT["TABLES"]
+BASE_PATH = REDSHIFT["COPY_BASE_PATH"]
 
 for table in TABLES:
     export_path = f"{BASE_PATH}/{table}/export/"
