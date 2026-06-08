@@ -54,14 +54,16 @@ def build_dim_search_term(silver_incremental_df):
 new_terms = build_dim_search_term(silver_incremental)
 
 processed_timestamp = silver_incremental.agg(F.max("run_timestamp")).collect()[0][0]
+tracker_schema = tracker_df.schema
 
 write_with_tracker(
     df=new_terms,
-    target_table=GOLD["DIM_SEARCH_TERM"],
-    table_name="dim_search_term",
+    target=GOLD["DIM_SEARCH_TERM"],
+    table_name="dim_product",
     tracker_table=GOLD_TRACKER_TABLE,
-    tracker_schema=tracker_df.schema,
-    processed_timestamp=processed_timestamp
+    tracker_schema=tracker_schema,
+    processed_timestamp=processed_timestamp,
+    write_type="delta"
 )
 
 # COMMAND ----------

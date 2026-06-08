@@ -224,13 +224,16 @@ fact_product_snapshot_final.display()
 # DBTITLE 1,Cell 14
 processed_timestamp = fact_product_snapshot_final.agg(F.max("snapshot_timestamp")).collect()[0][0]
 tracker_df = spark.table(GOLD_TRACKER_TABLE)
+tracker_schema = tracker_df.schema
 write_with_tracker(
     df=fact_product_snapshot_final,
-    target_table=GOLD["FACT_PRODUCT_SNAPSHOT"],
+    target=GOLD["FACT_PRODUCT_SNAPSHOT"],
     table_name="fact_product_snapshot",
     tracker_table=GOLD_TRACKER_TABLE,
-    tracker_schema=tracker_df.schema,
-    processed_timestamp=processed_timestamp
+    tracker_schema=tracker_schema,
+    processed_timestamp=processed_timestamp,
+    write_type="delta",
+    partition_columns=["snapshot_date"]
 )
 
 # COMMAND ----------

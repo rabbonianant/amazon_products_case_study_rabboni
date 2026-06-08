@@ -7,11 +7,13 @@ from pyspark.sql import functions as F
 
 def write_with_tracker(
     df,
-    target_table,
+    target,
     table_name,
     tracker_table,
     tracker_schema,
     processed_timestamp,
+    write_type="delta",
+    partition_columns=None
 ):
 
     records_written = df.count()
@@ -19,21 +21,34 @@ def write_with_tracker(
     try:
 
         if records_written > 0:
-            if table_name == 'fact_product_snapshot':
-                (
+
+            writer = (
                 df.write
-                .format("delta")
                 .mode("append")
-                .partitionBy("snapshot_date")
-                .saveAsTable(target_table)
             )
+
+            if partition_columns:
+                writer = writer.partitionBy(*partition_columns)
+
+            if write_type == "delta":
+
+                (
+                    writer
+                    .format("delta")
+                    .saveAsTable(target)
+                )
+
+            elif write_type == "parquet":
+
+                (
+                    writer
+                    .parquet(target)
+                )
+
             else:
-                (
-                df.write
-                .format("delta")
-                .mode("append")
-                .saveAsTable(target_table)
-            )
+                raise ValueError(
+                    f"Unsupported write_type: {write_type}"
+                )
 
         tracker_record = spark.createDataFrame(
             [

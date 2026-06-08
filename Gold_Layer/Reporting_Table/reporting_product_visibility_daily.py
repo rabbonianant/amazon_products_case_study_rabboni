@@ -95,52 +95,18 @@ reporting_df = (
 
 export_path = REDSHIFT["REPORTING_TABLE_EXPORT_PATH"]
 processed_timestamp = reporting_df.agg(F.max("snapshot_timestamp")).collect()[0][0]
-tracker_table = spark.table(GOLD_TRACKER_TABLE)
-tracker_schema = tracker_table.schema
 
-records_written = reporting_df.count()
-try:
-    reporting_df.write.mode("append").parquet(export_path)
-    tracker_record = spark.createDataFrame(
-        [
-            (
-                "product_visibility_daily",
-                "gold",
-                "success",
-                processed_timestamp,
-                processed_timestamp.date(),
-                records_written
-                )
-            ],
-            schema=tracker_schema
-        )
-    
-    tracker_record.write\
-        .format("delta")\
-            .mode("append")\
-                .saveAsTable(GOLD_TRACKER_TABLE)
-     
-except Exception as e:
-        tracker_record = spark.createDataFrame(
-            [
-                (
-                    "product_visibility_daily",
-                    "gold",
-                    "failed",
-                    processed_timestamp,
-                    processed_timestamp.date(),
-                    0
-                )
-            ],
-            schema=tracker_schema
-        )
-        tracker_record.write\
-            .format("delta")\
-                .mode("append")\
-                    .saveAsTable(GOLD_TRACKER_TABLE)
+tracker_schema = spark.table(GOLD_TRACKER_TABLE).schema
 
-        raise e
-
+write_with_tracker(
+    df=reporting_df,
+    target=export_path,
+    table_name="product_visibility_daily",
+    tracker_table=GOLD_TRACKER_TABLE,
+    tracker_schema=tracker_schema,
+    processed_timestamp=processed_timestamp,
+    write_type="parquet"
+)
 
 # COMMAND ----------
 

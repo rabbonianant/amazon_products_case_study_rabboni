@@ -127,6 +127,7 @@ def dim_product_scd2(silver_incremental_df,dim_table_name="gold.dim_product"):
 # COMMAND ----------
 
 processed_timestamp = dim_product_df_with_scd_columns.agg(F.max("run_timestamp")).collect()[0][0]
+tracker_schema = tracker_df.schema
 
 if spark.table(GOLD["DIM_PRODUCT"]).isEmpty():
     write_df = dim_product_df_with_scd_columns.drop("run_timestamp")
@@ -135,9 +136,10 @@ else:
 
 write_with_tracker(
     df=write_df,
-    target_table=GOLD["DIM_PRODUCT"],
+    target=GOLD["DIM_PRODUCT"],
     table_name="dim_product",
     tracker_table=GOLD_TRACKER_TABLE,
-    tracker_schema=tracker_df.schema,
-    processed_timestamp=processed_timestamp
+    tracker_schema=tracker_schema,
+    processed_timestamp=processed_timestamp,
+    write_type="delta"
 )
