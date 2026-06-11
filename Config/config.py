@@ -11,7 +11,7 @@ GOLD_TRACKER_TABLE = "amazon_case_study_gold_tracker"
 # COMMAND ----------
 
 SILVER = {
-    "DEDUPLICATION_WINDOW": Window.partitionBy("asin","search_term","run_timestamp").orderBy(F.col("run_timestamp").desc()),
+    "DEDUPLICATION_WINDOW": Window.partitionBy("asin","search_term","date").orderBy(F.col("run_timestamp").desc()),
     "SEARCH_RANK_WINDOW": Window.partitionBy("page","search_term","run_timestamp").orderBy(F.col("page_position").asc()),
     "WRITE_PATH": "s3://rabboni-case-study-data/silver/products_table/",
 
@@ -69,12 +69,10 @@ SILVER = {
     ],
     "NULL_HANDLING":{
         "product_num_ratings": 0,
-        "sales_volume": 0,
-        "is_amazon_choice": False,
-        "is_best_seller": False,
-        "is_prime": False,
+        "product_star_rating": 0,
         "actual_currency": "UNKNOWN"
     },    
+
     "CURRENCY_COLUMNS": ["product_price","product_original_price","product_minimum_offer_price"],
     "TYPE_CAST_COLUMNS": {
         #double
@@ -122,6 +120,13 @@ GOLD = {
         "TRY": ("Turkish Lira", 0.0250),
         "UNKNOWN": ("Unknown Currency", None)
     },
+    "DIM_DATE_BORDER" : {
+        "START_DATE": "2026-01-01",
+        "END_DATE": "2026-12-31"
+    },
+    "DIM_PRODUCT_HASH_COLUMNS": ["product_title","product_url","product_photo","has_variations"],
+    # "DIM_SEARCH_TERM_COLUMNS" : ['search_term', 'run_timestamp', ''],
+
     'DIM_BADGE_FLAGS': "gold.dim_badge_flags",
     'DIM_CURRENCY_TABLE': "gold.dim_currency_rate",
     'DIM_PRODUCT': "gold.dim_product",
@@ -139,6 +144,6 @@ REDSHIFT = {
 
     "TABLES": ["product_visibility_daily"],
     "COPY_BASE_PATH": "s3://rabboni-case-study-data/redshift_exports",
-    "AWS_ACCESS_KEY": "**********",
+    "AWS_ACCESS_KEY": "********",
     "AWS_SECRET_KEY": "**********",
 }

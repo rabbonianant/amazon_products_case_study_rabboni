@@ -1,6 +1,6 @@
 # Databricks notebook source
 from pyspark.sql import functions as F
-from pyspark.sql.types import StructType, ArrayType
+from pyspark.sql.types import *
 from datetime import datetime, timedelta, date
 import re
 from pyspark.sql.window import Window
@@ -28,112 +28,82 @@ def get_latest_timestamp():
 
 def get_incremental_api_df():
     latest_timestamp, latest_date = get_latest_timestamp()
-    dates_to_scan = []
-    
+
     if latest_timestamp is None:
-        return (spark.read.json("s3://rabboni-case-study-data/bronze/source=api/"))
-    
-    current_date = latest_date
-    today = datetime.utcnow().date()
-
-    while current_date <= today:
-        dates_to_scan.append(current_date.strftime("%Y-%m-%d"))
-        current_date += timedelta(days=1)
-
-    paths_to_read = []
-
-    for date in dates_to_scan:
-        partition_path = (
-            f"s3://rabboni-case-study-data/bronze/source=api/"
-            f"ingestion_date={date}/"
+        return spark.read.json(
+            "s3://rabboni-case-study-data/bronze/source=api/"
         )
 
-        try:
-            files = dbutils.fs.ls(partition_path)
-            for file in files:
-                match = re.search(r'(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z)',file.name)
+    today = datetime.utcnow().date()
+    paths = []
+    current_date = latest_date
 
-                if match:
-                    file_timestamp = datetime.strptime(
-                        match.group(1),
-                        "%Y-%m-%dT%H-%M-%SZ"
-                    )
+    while current_date <= today:
+        paths.append(
+            f"s3://rabboni-case-study-data/bronze/source=api/"
+            f"ingestion_date={current_date.strftime('%Y-%m-%d')}/"
+        )
+        current_date += timedelta(days=1)
 
-                    if file_timestamp > latest_timestamp:
-                        paths_to_read.append(file.path)
-        except:
-            pass
-
-    if not paths_to_read:
+    try:
+        df = spark.read.json(paths)
+    except Exception:
         return None
 
-    return spark.read.json(paths_to_read)
-
+    df = df.withColumn("file_run_timestamp",F.to_timestamp(F.col("metadata.run_timestamp"),"yyyy-MM-dd'T'HH-mm-ss'Z'"))\
+        .filter(F.col("file_run_timestamp") > F.lit(latest_timestamp))
+    
+    return df
 
 # COMMAND ----------
 
 def get_incremental_csv_df():
     latest_timestamp, latest_date = get_latest_timestamp()
-    dates_to_scan = []
 
     if latest_timestamp is None:
         return (
             spark.read
             .option("header", True)
-            .option("multiline", True)
+            .option("multiLine", True)
             .option("escape", '"')
             .option("quote", '"')
             .csv("s3://rabboni-case-study-data/bronze/source=csv/")
         )
 
-    current_date = latest_date
     today = datetime.utcnow().date()
 
+    paths = []
+    current_date = latest_date
+
     while current_date <= today:
-        dates_to_scan.append(current_date.strftime("%Y-%m-%d"))
+        paths.append(
+            f"s3://rabboni-case-study-data/bronze/source=csv/"
+            f"ingestion_date={current_date.strftime('%Y-%m-%d')}/"
+        )
         current_date += timedelta(days=1)
 
-    paths_to_read = []
-
-    for date in dates_to_scan:
-        partition_path = (
-            f"s3://rabboni-case-study-data/bronze/source=csv/"
-            f"ingestion_date={date}/"
+    try:
+        df = (
+            spark.read
+            .option("header", True)
+            .option("multiLine", True)
+            .option("escape", '"')
+            .option("quote", '"')
+            .csv(paths)
         )
-
-        try:
-            files = dbutils.fs.ls(partition_path)
-            for file in files:
-                match = re.search(r'(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z)',file.name)
-
-                if match:
-                    file_timestamp = datetime.strptime(
-                        match.group(1),
-                        "%Y-%m-%dT%H-%M-%SZ"
-                    )
-
-                    if file_timestamp > latest_timestamp:
-                        paths_to_read.append(file.path)
-
-        except:
-            pass
-
-    if not paths_to_read:
+    except Exception:
         return None
 
-    return (
-        spark.read
-        .option("header", True)
-        .option("multiLine", True)
-        .option("escape", '"')
-        .option("quote", '"')
-        .csv(paths_to_read)
-    )
+    df = df.withColumn("file_run_timestamp",F.to_timestamp(F.col("run"),"yyyy-MM-dd'T'HH-mm-ss'Z'"))\
+        .filter(F.col("file_run_timestamp") > F.lit(latest_timestamp))
+
+    return df
 
 # COMMAND ----------
 
 api_json_df = get_incremental_api_df()
 csv_df = get_incremental_csv_df()
+
 
 # COMMAND ----------
 
@@ -206,9 +176,6 @@ api_df_standardized = api_df.select(*[column for column in required_columns if c
 csv_df = csv_df.select(*[column for column in required_columns if column in api_df.columns])
 
 
-api_df_standardized.printSchema()
-csv_df.printSchema()
-
 # COMMAND ----------
 
 # MAGIC %md
@@ -259,8 +226,6 @@ for column_name, target_type in SILVER["TYPE_CAST_COLUMNS"].items():
 typecasted_data_df = combined_data_df.withColumn("run_timestamp",F.to_timestamp(F.col("run"),"yyyy-MM-dd'T'HH-mm-ss'Z'"))\
     .drop(F.col("run"))
 
-display(typecasted_data_df)
-
 # COMMAND ----------
 
 typecasted_data_df = typecasted_data_df.withColumn(
@@ -287,7 +252,13 @@ typecasted_data_df = typecasted_data_df.withColumn(
 
 # COMMAND ----------
 
-cleaned_data_df = typecasted_data_df.fillna(SILVER["NULL_HANDLING"])
+
+boolean_null_handling = {
+    field.name : False
+    for field in typecasted_data_df.schema.fields if isinstance(field.dataType, BooleanType)
+}
+cleaned_data_df = typecasted_data_df.fillna(boolean_null_handling)\
+    .fillna(SILVER["NULL_HANDLING"])
 
 # COMMAND ----------
 
@@ -313,11 +284,6 @@ silver_data_df = cleaned_data_df.withColumn("row_number", F.row_number().over(wi
 window = SILVER["SEARCH_RANK_WINDOW"]
 silver_data_df = silver_data_df.withColumn("rank_by_keyword", F.row_number().over(window))
 
-
-# COMMAND ----------
-
-silver_data_df.display()
-silver_data_df.printSchema()
 
 # COMMAND ----------
 
@@ -358,12 +324,3 @@ finally:
     tracker_schema = spark.table(SILVER_TRACKER_TABLE).schema
     tracker_df = spark.createDataFrame(tracker_row, schema=tracker_schema)
     tracker_df.write.mode("append").format("delta").saveAsTable(SILVER_TRACKER_TABLE)
-
-# COMMAND ----------
-
-spark.read.format("delta") \
-    .load(SILVER["WRITE_PATH"]) \
-    .printSchema()
-
-# COMMAND ----------
-

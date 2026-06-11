@@ -3,11 +3,15 @@ import pyspark.sql.functions as F
 
 # COMMAND ----------
 
+# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Config/config
+
+# COMMAND ----------
+
 dates = spark.range(1).select(
     F.explode(
         F.sequence(
-            F.lit("2026-01-01").cast("date"),
-            F.lit("2026-12-31").cast("date"),
+            F.lit(GOLD["DIM_DATE_BORDER"]["START_DATE"]).cast("date"),
+            F.lit(GOLD["DIM_DATE_BORDER"]["END_DATE"]).cast("date"),
             F.expr("interval 1 day")
         )
     ).alias("date")
@@ -30,8 +34,8 @@ dates = dates.withColumn("year", F.year("date"))\
     .withColumn("is_weekend", F.when(F.dayofweek("date") == 1, True).when(F.dayofweek("date") == 7, True).otherwise(False))\
     .withColumn("is_month_start", F.when(F.col("day") == 1, True).otherwise(False))\
     .withColumn("is_month_end", F.when(F.last_day("date") == F.col("date"), True).otherwise(False))\
-    .withColumn("is_quarter_start", F.when((F.col("month") % 4 == 1) & (F.col("week") == 1), True).otherwise(False))\
-    .withColumn("is_quarter_end", F.when((F.col("month") % 4 == 0) & (F.col("week") == 4), True).otherwise(False))\
+    .withColumn("is_quarter_start",F.when(F.col("month").isin(1, 4, 7, 10) &(F.col("day") == 1),True).otherwise(False))\
+    .withColumn("is_quarter_end",F.when(F.col("month").isin(3, 6, 9, 12) &(F.last_day("date") == F.col("date")),True).otherwise(False))
     
 
 # COMMAND ----------

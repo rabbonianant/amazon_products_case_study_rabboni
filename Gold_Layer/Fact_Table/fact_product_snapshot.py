@@ -9,7 +9,7 @@ from datetime import date
 
 # COMMAND ----------
 
-# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Helper_Functions/helper_function
+# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Utility_Functions/util_functions
 
 # COMMAND ----------
 
@@ -29,7 +29,6 @@ dim_badge = spark.table(GOLD["DIM_BADGE_FLAGS"]) \
         "is_prime",
         "climate_pledge"
     )
-dim_badge = dim_badge.withColumnRenamed("climate_pledge", "climate_pledge_friendly")
 
 dim_date = spark.table(GOLD["DIM_DATE"]) \
     .select(
@@ -61,21 +60,21 @@ display(fact_product_snapshot_df)
 fact_product_snapshot_df = (
     fact_product_snapshot_df
     .join(
-        dim_search,
+        F.broadcast(dim_search),
         on="search_term",
         how="left"
     )
 )
 
 fact_product_snapshot_df = (
-    fact_product_snapshot_df
+    fact_product_snapshot_df.withColumnRenamed("climate_pledge_friendly", "climate_pledge")
     .join(
-        dim_badge,
+        F.broadcast(dim_badge),
         on=[
             "is_best_seller",
             "is_amazon_choice",
             "is_prime",
-            "climate_pledge_friendly"
+            "climate_pledge"
         ],
         how="left"
     )
@@ -84,7 +83,7 @@ fact_product_snapshot_df = (
 fact_product_snapshot_df = (
     fact_product_snapshot_df
     .join(
-        dim_date,
+        F.broadcast(dim_date),
         on="date",
         how="left"
     )
@@ -95,7 +94,7 @@ fact_product_snapshot_df = (
 fact_product_snapshot_df = (
     fact_product_snapshot_df.alias("f")
     .join(
-        dim_product.alias("d"),
+        F.broadcast(dim_product).alias("d"),
         (
             (F.col("f.asin") == F.col("d.asin"))
             &
@@ -125,16 +124,7 @@ fact_product_snapshot_df = fact_product_snapshot_df.withColumn(
         F.col("product_original_price").isNotNull()
         &
         (F.col("product_original_price") > 0),
-
-        (
-            (
-                F.col("product_original_price")
-                -
-                F.col("product_price")
-            )
-            /
-            F.col("product_original_price")
-        ) * 100
+        ((F.col("product_original_price") - F.col("product_price"))/F.col("product_original_price")) * 100
     )
 )
 
@@ -142,7 +132,7 @@ fact_product_snapshot_df = fact_product_snapshot_df.withColumn(
 
 fact_product_snapshot_df = fact_product_snapshot_df.alias("f")\
     .join(
-        currency_dim.alias("c"),
+        F.broadcast(currency_dim).alias("c"),
         F.col("f.actual_currency") == F.col("c.currency_code"),
         "left"
     )\
@@ -238,5 +228,3 @@ write_with_tracker(
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from amazon_case_study_gold_tracker

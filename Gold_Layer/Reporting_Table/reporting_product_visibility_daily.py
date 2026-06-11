@@ -8,7 +8,7 @@ from datetime import datetime
 
 # COMMAND ----------
 
-# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Helper_Functions/helper_function
+# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Utility_Functions/util_functions
 
 # COMMAND ----------
 
@@ -32,10 +32,10 @@ badge_df = spark.table(GOLD["DIM_BADGE_FLAGS"])
 
 reporting_df = (
     fact_df.alias("f")
-    .join(product_df.alias("p"), "product_key")
-    .join(search_df.alias("s"), "search_key")
-    .join(date_df.alias("d"), "date_key")
-    .join(badge_df.alias("b"), "badge_key")
+    .join(F.broadcast(product_df.alias("p")), "product_key")
+    .join(F.broadcast(search_df.alias("s")), "search_key")
+    .join(F.broadcast(date_df.alias("d")), "date_key")
+    .join(F.broadcast(badge_df.alias("b")), "badge_key")
     .select(
         "f.date_key",
         "d.date",

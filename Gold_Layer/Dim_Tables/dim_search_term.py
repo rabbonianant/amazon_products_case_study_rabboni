@@ -8,7 +8,7 @@ from datetime import date
 
 # COMMAND ----------
 
-# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Helper_Functions/helper_function
+# MAGIC %run /Workspace/Users/rabboni.anant@coditas.com/Case_Study/notebooks/Utility_Functions/util_functions
 
 # COMMAND ----------
 
@@ -59,7 +59,7 @@ tracker_schema = tracker_df.schema
 write_with_tracker(
     df=new_terms,
     target=GOLD["DIM_SEARCH_TERM"],
-    table_name="dim_product",
+    table_name="dim_search_term",
     tracker_table=GOLD_TRACKER_TABLE,
     tracker_schema=tracker_schema,
     processed_timestamp=processed_timestamp,

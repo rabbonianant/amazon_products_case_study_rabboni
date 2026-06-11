@@ -17,33 +17,18 @@ def write_with_tracker(
 ):
 
     records_written = df.count()
-
     try:
-
         if records_written > 0:
-
-            writer = (
-                df.write
-                .mode("append")
-            )
+            writer = df.write.mode("append")
 
             if partition_columns:
                 writer = writer.partitionBy(*partition_columns)
 
             if write_type == "delta":
-
-                (
-                    writer
-                    .format("delta")
-                    .saveAsTable(target)
-                )
-
+                writer.format("delta").saveAsTable(target)
+            
             elif write_type == "parquet":
-
-                (
-                    writer
-                    .parquet(target)
-                )
+                writer.parquet(target)
 
             else:
                 raise ValueError(
