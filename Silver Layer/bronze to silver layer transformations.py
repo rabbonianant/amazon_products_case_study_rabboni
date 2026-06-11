@@ -173,7 +173,7 @@ api_df = flattened_api_df.withColumnsRenamed(standard_columns)
 required_columns = SILVER["REQUIRED_COLUMNS"]
 
 api_df_standardized = api_df.select(*[column for column in required_columns if column in api_df.columns])
-csv_df = csv_df.select(*[column for column in required_columns if column in api_df.columns])
+csv_df = csv_df.select(*[column for column in required_columns if column in csv_df.columns])
 
 
 # COMMAND ----------

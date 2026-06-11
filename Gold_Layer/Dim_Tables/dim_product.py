@@ -114,16 +114,6 @@ def dim_product_scd2(incoming_df):
 
 # COMMAND ----------
 
-dim_product_df_with_hash_value.printSchema()
-
-# COMMAND ----------
-
-dim_product_df_with_hash_value.filter(
-    F.col("hash_value") == "13826b30161c8401c32a6dc3991f2c7f"
-).show(truncate=False)
-
-# COMMAND ----------
-
 processed_timestamp = dim_product_df_with_scd_columns.agg(F.max("run_timestamp")).collect()[0][0]
 tracker_schema = tracker_df.schema
 
@@ -141,8 +131,3 @@ write_with_tracker(
     processed_timestamp=processed_timestamp,
     write_type="delta"
 )
-
-# COMMAND ----------
-
-tab = spark.table(GOLD["DIM_PRODUCT"])
-tab.printSchema()

@@ -11,7 +11,7 @@ GOLD_TRACKER_TABLE = "amazon_case_study_gold_tracker"
 # COMMAND ----------
 
 SILVER = {
-    "DEDUPLICATION_WINDOW": Window.partitionBy("asin","search_term","date").orderBy(F.col("run_timestamp").desc()),
+    "DEDUPLICATION_WINDOW": Window.partitionBy("asin","search_term","run_timestamp").orderBy(F.col("run_timestamp").desc()),
     "SEARCH_RANK_WINDOW": Window.partitionBy("page","search_term","run_timestamp").orderBy(F.col("page_position").asc()),
     "WRITE_PATH": "s3://rabboni-case-study-data/silver/products_table/",
 
@@ -145,5 +145,5 @@ REDSHIFT = {
     "TABLES": ["product_visibility_daily"],
     "COPY_BASE_PATH": "s3://rabboni-case-study-data/redshift_exports",
     "AWS_ACCESS_KEY": "********",
-    "AWS_SECRET_KEY": "**********",
+    "AWS_SECRET_KEY": "************",
 }
