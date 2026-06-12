@@ -258,7 +258,8 @@ boolean_null_handling = {
     for field in typecasted_data_df.schema.fields if isinstance(field.dataType, BooleanType)
 }
 cleaned_data_df = typecasted_data_df.fillna(boolean_null_handling)\
-    .fillna(SILVER["NULL_HANDLING"])
+    .fillna(SILVER["NULL_HANDLING"])\
+        .dropna(subset=["asin"])
 
 # COMMAND ----------
 
@@ -324,3 +325,10 @@ finally:
     tracker_schema = spark.table(SILVER_TRACKER_TABLE).schema
     tracker_df = spark.createDataFrame(tracker_row, schema=tracker_schema)
     tracker_df.write.mode("append").format("delta").saveAsTable(SILVER_TRACKER_TABLE)
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC Create table if not exists silver.products_table
+# MAGIC using delta
+# MAGIC LOCATION 's3://rabboni-case-study-data/silver/products_table'

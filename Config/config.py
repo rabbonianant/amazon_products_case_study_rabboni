@@ -144,6 +144,6 @@ REDSHIFT = {
 
     "TABLES": ["product_visibility_daily"],
     "COPY_BASE_PATH": "s3://rabboni-case-study-data/redshift_exports",
-    "AWS_ACCESS_KEY": "********",
-    "AWS_SECRET_KEY": "************",
+    "AWS_ACCESS_KEY": "****************",
+    "AWS_SECRET_KEY": "****************",
 }

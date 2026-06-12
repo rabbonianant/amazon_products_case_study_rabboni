@@ -114,6 +114,16 @@ def dim_product_scd2(incoming_df):
 
 # COMMAND ----------
 
+# Check for duplicate current rows
+spark.table(GOLD["DIM_PRODUCT"]) \
+    .filter("is_current = true") \
+    .groupBy("asin") \
+    .count() \
+    .filter("count > 1") \
+    .show()
+
+# COMMAND ----------
+
 processed_timestamp = dim_product_df_with_scd_columns.agg(F.max("run_timestamp")).collect()[0][0]
 tracker_schema = tracker_df.schema
 

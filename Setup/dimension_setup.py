@@ -72,7 +72,7 @@
 
 # MAGIC %sql
 # MAGIC CREATE TABLE IF NOT EXISTS gold.dim_badge_flags (
-# MAGIC     badge_key BIGINT GENERATED ALWAYS AS IDENTITY,
+# MAGIC     badge_key BIGINT,
 # MAGIC
 # MAGIC     is_best_seller BOOLEAN,
 # MAGIC     is_amazon_choice BOOLEAN,

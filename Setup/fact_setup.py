@@ -41,3 +41,6 @@
 # MAGIC USING DELTA
 # MAGIC PARTITIONED BY (snapshot_date)
 # MAGIC LOCATION 's3://rabboni-case-study-data/gold/fact_product_snapshot/';
+
+# COMMAND ----------
+
